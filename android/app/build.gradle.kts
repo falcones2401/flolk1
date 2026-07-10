@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.flolk1"
+    namespace = "com.flolk.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
