@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/network/auth_service.dart';
-import 'chat_list_screen.dart';
+import 'package:flolk1/features/chat/screens/chat_list_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
