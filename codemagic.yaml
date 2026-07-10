@@ -15,8 +15,13 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter pub get
-      - name: Build APK Release
+      - name: Clean Flutter Cache
         script: |
+          flutter clean
+      - name: Fix Package Name and Build
+        script: |
+          # Questo comando corregge l'ID direttamente sul server prima della build
+          sed -i '' 's/com.example.flolk1/com.flolk.app/g' android/app/build.gradle
           flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
