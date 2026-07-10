@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/network/auth_service.dart';
+import 'chat_list_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -12,20 +14,47 @@ class _SignupScreenState extends State<SignupScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
-  void _signup() {
+  void _signup() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Logica di registrazione e generazione chiavi crittografiche locali
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registrazione in corso...')),
-      );
+      setState(() => _isLoading = true);
+      
+      try {
+        final user = await _authService.signUpWithEmailAndPassword(
+          username: _usernameController.text,
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        if (user != null && mounted) {
+          // Registrazione completata, andiamo alla lista delle chat
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatListScreen()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
+    return Scaffold = Scaffold(
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -54,11 +83,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     prefixIcon: const Icon(Icons.alternate_email),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  validator: (value) => value!.isEmpty ? 'Inserisci un username' : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Inserisci un username';
+                    if (value.contains(' ')) return 'L\'username cannot contenere spazi';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     prefixIcon: const Icon(Icons.mail_outline),
@@ -79,13 +113,15 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _signup,
+                  onPressed: _isLoading ? null : _signup,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Registrati', style: TextStyle(fontSize: 16, color: Colors.white)),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Registrati', style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
               ],
             ),

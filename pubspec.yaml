@@ -1,0 +1,37 @@
+name: flolk1
+description: A new secure and encrypted chat application.
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icone aggiuntive per la UI stile Flolk
+  cupertino_icons: ^1.0.6
+
+  # CRITTOGRAFIA: Pacchetto per gestire AES, RSA e algoritmi di cifratura avanzati
+  encrypt: ^5.0.3
+
+  # SICUREZZA: Salva le chiavi private dell'utente nella memoria sicura del telefono (Keystore/Keychain)
+  # Impedisce che hacker o altre app leggano le chiavi di decifratura
+  flutter_secure_storage: ^9.2.2
+
+  # CORE FIREBASE: Necessari per l'infrastruttura di rete
+  firebase_core: ^3.2.0
+  
+  # ACCESSO: Gestisce il Login/Signup degli utenti in modo sicuro sul database
+  firebase_auth: ^5.1.1
+  
+  # DATABASE: Per scambiarsi i messaggi (che manderemo già criptati in formato testo)
+  cloud_firestore: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../chat/screens/single_chat_screen.dart';
 
 class SearchUserScreen extends StatefulWidget {
@@ -10,10 +12,11 @@ class SearchUserScreen extends StatefulWidget {
 
 class _SearchUserScreenState extends State<SearchUserScreen> {
   final _searchController = TextEditingController();
-  List<String> _searchResults = [];
+  List<Map<String, dynamic>> _searchResults = [];
   bool _isLoading = false;
+  final String _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-  void _searchUsers(String query) {
+  void _searchUsers(String query) async {
     if (query.isEmpty) {
       setState(() => _searchResults = []);
       return;
@@ -21,22 +24,33 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
     setState(() => _isLoading = true);
 
-    // TODO: Qui inseriremo la chiamata al Database (es. Supabase) per cercare l'username reale
-    // Per ora simuliamo una ricerca locale con utenti fittizi per testare il design
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final mockUsers = ['mario_rossi', 'luca_verdi', 'giulia_bianchi', 'stefano_99', 'falcones_fan'];
+    try {
+      // Cerchiamo su Firestore gli utenti il cui username inizia o contiene il testo digitato
+      final lowercaseQuery = query.toLowerCase().trim();
       
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('username', isGreaterThanOrEqualTo: lowercaseQuery)
+          .where('username', isLessThanOrEqualTo: '$lowercaseQuery\uf8ff')
+          .get();
+
       setState(() {
-        _searchResults = mockUsers
-            .where((user) => user.toLowerCase().contains(query.toLowerCase()))
+        _searchResults = querySnapshot.docs
+            .map((doc) => doc.data())
+            // Escludiamo noi stessi dai risultati della ricerca
+            .where((userData) => userData['uid'] != _currentUserId)
             .toList();
-        _isLoading = false;
       });
-    });
+    } catch (e) {
+      print("Errore durante la ricerca: $e");
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cerca Utenti'),
@@ -47,12 +61,12 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Barra di ricerca con lo stile di Flolk
+            // Barra di ricerca stile Flolk
             TextField(
               controller: _searchController,
               onChanged: _searchUsers,
               decoration: InputDecoration(
-                hintText: 'Inserisci l\'username esatto...',
+                hintText: 'Inserisci l\'username...',
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF6C63FF)),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -75,14 +89,14 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             ),
             const SizedBox(height: 20),
             
-            // Lista dei risultati
+            // Lista dei risultati reali da Firebase
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF6C63FF)))
                   : _searchResults.isEmpty
                       ? const Center(
                           child: Text(
-                            'Cerca un username per iniziare a chattare.\nLa chat si attiverà al primo messaggio!',
+                            'Nessun utente trovato.\nCerca un username per iniziare a chattare!',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.grey),
                           ),
@@ -90,7 +104,9 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                       : ListView.builder(
                           itemCount: _searchResults.length,
                           itemBuilder: (context, index) {
-                            final username = _searchResults[index];
+                            final userData = _searchResults[index];
+                            final username = userData['username'] as String;
+
                             return Card(
                               color: const Color(0xFF1E1E1E),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -98,18 +114,23 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: const Color(0xFF6C63FF),
-                                  child: Text(username[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                                  child: Text(
+                                    username[0].toUpperCase(), 
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+                                  ),
                                 ),
                                 title: Text(username, style: const TextStyle(fontWeight: FontWeight.bold)),
                                 subtitle: const Text('Tocca per aprire la conversazione'),
                                 trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                                 onTap: () {
-                                  // Logica: Passiamo alla chat singola passando l'username cercato.
-                                  // La stanza viene creata localmente, sul server nascerà solo quando uno dei due scrive.
+                                  // MODIFICATO: Ora passiamo sia l'username che l'UID reale a SingleChatScreen
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => SingleChatScreen(targetUsername: username),
+                                      builder: (context) => SingleChatScreen(
+                                        targetUsername: username,
+                                        targetUid: userData['uid'] as String,
+                                      ),
                                     ),
                                   );
                                 },

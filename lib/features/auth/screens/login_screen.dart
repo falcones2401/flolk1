@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/network/auth_service.dart';
 import 'signup_screen.dart';
 import '../../chat/screens/chat_list_screen.dart';
 
@@ -13,15 +15,52 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _identityController = TextEditingController(); // Può essere username o email
   final _passwordController = TextEditingController();
+  
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implementare logica di login con il backend (es. Supabase)
-      // Per ora navighiamo direttamente alla lista delle chat
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ChatListScreen()),
-      );
+      setState(() => _isLoading = true);
+      String input = _identityController.text.trim();
+      String email = input;
+
+      try {
+        // Se l'input non contiene la '@', assumiamo che sia un username
+        if (!input.contains('@')) {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .where('username', isEqualTo: input.toLowerCase())
+              .get();
+
+          if (userDoc.docs.isEmpty) {
+            throw Exception("Username non trovato.");
+          }
+          // Recuperiamo l'email reale collegata a questo username
+          email = userDoc.docs.first.data()['email'];
+        }
+
+        // Effettuiamo il login con l'email trovata
+        final user = await _authService.loginWithEmailAndPassword(email, _passwordController.text);
+
+        if (user != null && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatListScreen()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -41,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Bentornato su Flolk',
                   style: theme.textTheme.headlineMedium,
-                  textAlign: Center(),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -72,13 +111,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _login,
+                  onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Accedi', style: TextStyle(fontSize: 16, color: Colors.white)),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Accedi', style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
                 const SizedBox(height: 16),
                 TextButton(

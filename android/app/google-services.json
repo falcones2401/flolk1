@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "180830160557",
+    "project_id": "flolk1",
+    "storage_bucket": "flolk1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:180830160557:android:fdd6468172b9dc6e7ca824",
+        "android_client_info": {
+          "package_name": "com.falcones2401.flolk1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHobZl0xTsTw0y8S8IQCyfopnDacSwWoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:180830160557:android:51fff4de0af456d57ca824",
+        "android_client_info": {
+          "package_name": "com.flolk.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHobZl0xTsTw0y8S8IQCyfopnDacSwWoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
