@@ -83,7 +83,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       final String newGroupId = await _chatService.createGroupChat(
         groupName: groupName,
         memberUids: _selectedUserUids,
-        groupSecretKey: groupSecretKey,
       );
 
       if (mounted) {
