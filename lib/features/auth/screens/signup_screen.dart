@@ -33,7 +33,7 @@ class _SignupScreenState extends State<SignupScreen> {
           // Registrazione completata, andiamo alla lista delle chat
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const ChatListScreen()),
+            MaterialPageRoute(builder: (context) => ChatListScreen()),
           );
         }
       } catch (e) {
@@ -54,7 +54,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold = Scaffold(
+    return Scaffold(
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
         child: SingleChildScrollView(
