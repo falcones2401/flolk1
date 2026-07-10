@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:convert';
-import 'dart:crypto'; // Fornisce la generazione di stringhe casuali se necessario, o usiamo un hash generato
+import 'dart:convert'; // Serve per utf8.encode
+import 'package:crypto/crypto.dart'; // Questo è l'import corretto
 import '../encryption/crypto_service.dart';
 
 class ChatService {
