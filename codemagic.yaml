@@ -4,15 +4,13 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
-      groups:
-        - firebase_credentials # Se configurerai chiavi segrete in seguito
       flutter: stable
-      xcode: latest
     triggering:
       events:
         - push
-      branches:
-        - main
+      watching:
+        branches:
+          - main
     scripts:
       - name: Set up local.properties
         script: |
